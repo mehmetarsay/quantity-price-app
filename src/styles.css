@@ -77,16 +77,16 @@ body{
   user-select:none;
 }
 
-/* Inputs */
+/* Giriş kutuları */
 input[type="number"],input[type="text"]{
   width:100%;
-  padding:10px 12px;
+  padding:12px 14px;
   border-radius:10px;
   border:1px solid var(--border);
   background:#0e1620;
   color:#fff;
   outline:none;
-  font-size:15px;
+  font-size:16px;   /* min 16px → iOS zoom engellenir */
   font-variant-numeric:tabular-nums;
 }
 input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--ring)}
@@ -138,3 +138,4 @@ output.amount{
     letter-spacing:.3px;
   }
 }
+

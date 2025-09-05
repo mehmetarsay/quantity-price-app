@@ -12,6 +12,9 @@ const footerEl     = document.getElementById('footer');
 const endSentinel  = document.getElementById('endSentinel');
 const waBtn        = document.getElementById('waBtn');
 
+let focusedEl = null;
+
+
 let rowCounter = 0;
 
 /* ----------- row factory ----------- */
@@ -23,29 +26,34 @@ function makeRow(index, qtyValue = '', priceValue = '') {
   num.className = 'row-num';
   num.textContent = index + 1;
 
+  // ADET — text + inputmode=numeric => klavyede "Next"
   const qty = document.createElement('input');
-  qty.type = 'number';
-  qty.min = '0';
-  qty.step = '1';
+  qty.type = 'text';
   qty.placeholder = 'Adet';
   qty.className = 'qty';
   qty.inputMode = 'numeric';
+  qty.pattern = '[0-9]*';
   qty.autocomplete = 'off';
+  qty.autocapitalize = 'off';
+  qty.spellcheck = false;
   qty.enterKeyHint = 'next';
   qty.value = qtyValue;
 
+  // FİYAT — text + inputmode=decimal => klavyede "Next"
   const price = document.createElement('input');
   price.type = 'text';
   price.placeholder = 'Fiyat';
   price.className = 'price';
   price.inputMode = 'decimal';
   price.autocomplete = 'off';
+  price.autocapitalize = 'off';
+  price.spellcheck = false;
   price.enterKeyHint = 'next';
   price.value = priceValue;
 
+  // TUTAR (küçük rozet)
   const amount = document.createElement('output');
   amount.className = 'amount';
-  amount.value = '0,00';
   amount.textContent = '0,00';
 
   row.append(num, qty, price, amount);
@@ -152,6 +160,24 @@ rowsEl.addEventListener('change', (e) => {
   }
 });
 
+// Odaklanma takibi (basit)
+document.addEventListener('focusin', (e) => {
+  const el = e.target;
+  if (el.matches('input.qty, input.price')) {
+    focusedEl = el;
+  }
+});
+
+// Odaktan çıkınca temizle
+document.addEventListener('focusout', (e) => {
+  setTimeout(() => {
+    const a = document.activeElement;
+    if (!a || !a.matches('input.qty, input.price')) {
+      focusedEl = null;
+    }
+  }, 50);
+});
+
 /* Enter/Next akışı */
 rowsEl.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter') return;
@@ -175,6 +201,7 @@ rowsEl.addEventListener('keydown', (e) => {
     }
   }
 });
+
 
 /* Alt +20 butonu */
 if (add20Bottom) {

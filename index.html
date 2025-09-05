@@ -2,7 +2,8 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Mobilde zoom engelle -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, interactive-widget=overlays-content" />
   <title>Adet × Fiyat</title>
   <link rel="stylesheet" href="./src/styles.css" />
 </head>
@@ -30,7 +31,11 @@
         <div>Birim Fiyat</div>
       </div>
 
-      <div id="rows" class="rows" role="grid" aria-label="Adet ve fiyat satırları"></div>
+      <!-- FORM BAŞLANGICI -->
+      <form id="rowsForm" onsubmit="return false">
+        <div id="rows" class="rows" role="grid" aria-label="Adet ve fiyat satırları"></div>
+      </form>
+      <!-- FORM BİTİŞİ -->
 
       <div class="footer" id="footer">
         <button id="add20Bottom" class="btn btn-accent">+20 Satır Daha Ekle</button>
@@ -41,5 +46,6 @@
   </div>
 
   <script type="module" src="./src/main.js"></script>
+
 </body>
 </html>
