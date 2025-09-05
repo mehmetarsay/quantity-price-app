@@ -1,0 +1,100 @@
+:root {
+  --bg: #0b0f14;
+  --card: #121820;
+  --muted: #7d8b9d;
+  --text: #e7eef7;
+  --accent: #2bd576;
+  --danger: #ff5d5d;
+  --ring: rgba(43,213,118,0.35);
+  --border: #1e2632;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap { max-width: 960px; margin: 0 auto; padding: 12px; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 5;
+  display: grid; grid-template-columns: 1fr auto; gap: 8px;
+  align-items: center; padding: 10px; margin-bottom: 10px;
+  background: linear-gradient(180deg, rgba(11,15,20,.9), rgba(11,15,20,.6));
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+.title { grid-column: 1 / -1; font-weight: 700; letter-spacing: .2px; color: #cfe0ff; font-size: 14px; }
+.total {
+  justify-self: end; font-weight: 700; padding: 8px 12px; border-radius: 12px;
+  background: var(--card); border: 1px solid var(--border);
+}
+.total .val { color: var(--accent); font-variant-numeric: tabular-nums; }
+
+.btn {
+  appearance: none; border: 1px solid var(--border); background: var(--card);
+  color: var(--text); padding: 10px 14px; border-radius: 12px; cursor: pointer;
+  transition: transform .06s ease, box-shadow .2s ease, border-color .2s ease;
+  touch-action: manipulation;
+}
+.btn:active { transform: translateY(1px); }
+.btn:hover { border-color: #2a3546; }
+.btn-danger { color: #ffdede; border-color: #3a1e22; background: linear-gradient(180deg,#2a1518,#1a0f11); }
+.btn-accent { border-color: #163426; background: linear-gradient(180deg,#10261d,#0d1e17); }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: clip; }
+
+.header-row {
+  display: none; /* mobile: gizle, satır içi etiketlenmiş tasarım yeterli */
+  color: var(--muted);
+}
+
+.rows { padding: 8px 10px 12px 10px; }
+.row {
+  display: grid;
+  grid-template-areas:
+    "qty price"
+    "amount amount";
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+.row input.qty { grid-area: qty; }
+.row input.price { grid-area: price; }
+.row output.amount { grid-area: amount; }
+
+input[type="number"], input[type="text"], output.amount {
+  width: 100%; padding: 14px 14px; border-radius: 14px; border: 1px solid var(--border);
+  background: #0f141c; color: var(--text); outline: none; font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+input::placeholder { color: #5e6e84; }
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 6px var(--ring); }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+output.amount {
+  display: flex; justify-content: flex-end; align-items: center;
+  background: #0c1118; border: 1px dashed #273341; min-height: 48px; padding-right: 16px;
+  font-weight: 700;
+}
+
+.footer { position: sticky; bottom: 0; background: #0e141c; padding: 10px; border-top: 1px solid var(--border); display:flex; justify-content:center; }
+.footer .btn { width: 100%; max-width: 520px; }
+
+/* Daha geniş ekranlarda 3 sütuna geç */
+@media (min-width: 560px) {
+  .topbar { grid-template-columns: auto 1fr auto auto; gap: 12px; }
+  .title { grid-column: initial; font-size: 15px; }
+  .header-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+    padding: 12px 12px 8px 12px; font-size: 13px; letter-spacing: .3px;
+  }
+  .row {
+    grid-template-areas: "qty price amount";
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  output.amount { justify-content: flex-end; }
+}

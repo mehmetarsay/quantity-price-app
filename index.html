@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adet × Fiyat Hesaplayıcı</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <button id="resetBtn" class="btn btn-danger" title="Tüm alanları sıfırla">Sıfırla</button>
+      <div class="title">Adet × Fiyat Hesaplayıcı</div>
+      <button id="add20Top" class="btn btn-accent" title="20 satır daha ekle">+20 Satır Ekle</button>
+      <div class="total">Toplam: <span id="grandTotal" class="val">0,00</span></div>
+    </div>
+    <div class="card">
+      <div class="header-row" aria-hidden="true">
+        <div>Adet</div>
+        <div>Birim Fiyat</div>
+        <div style="text-align:right">Tutar</div>
+      </div>
+      <div id="rows" class="rows" role="grid" aria-label="Adet ve fiyat satırları"></div>
+      <div class="footer">
+        <button id="add20Bottom" class="btn btn-accent">+20 Satır Daha Ekle</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
