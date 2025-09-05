@@ -2,19 +2,26 @@ import { parseNumber, fmt } from './utils.js';
 import { loadState, saveState, clearState } from './storage.js';
 
 const INITIAL = 20;
+const WA_NUMBER = '905330795539'; // 05330795539 → uluslararası
 
-const rowsEl = document.getElementById('rows');
+const rowsEl       = document.getElementById('rows');
 const grandTotalEl = document.getElementById('grandTotal');
-const add20Top = document.getElementById('add20Top');
-const add20Bottom = document.getElementById('add20Bottom');
-const resetBtn = document.getElementById('resetBtn');
+const add20Bottom  = document.getElementById('add20Bottom');
+const resetBtn     = document.getElementById('resetBtn');
+const footerEl     = document.getElementById('footer');
+const endSentinel  = document.getElementById('endSentinel');
+const waBtn        = document.getElementById('waBtn');
 
-let rowCount = 0;
+let rowCounter = 0;
 
+/* ----------- row factory ----------- */
 function makeRow(index, qtyValue = '', priceValue = '') {
   const row = document.createElement('div');
   row.className = 'row';
-  row.dataset.index = String(index);
+
+  const num = document.createElement('div');
+  num.className = 'row-num';
+  num.textContent = index + 1;
 
   const qty = document.createElement('input');
   qty.type = 'number';
@@ -22,26 +29,26 @@ function makeRow(index, qtyValue = '', priceValue = '') {
   qty.step = '1';
   qty.placeholder = 'Adet';
   qty.className = 'qty';
-  qty.setAttribute('aria-label', `Satır ${index+1} adet`);
   qty.inputMode = 'numeric';
+  qty.autocomplete = 'off';
+  qty.enterKeyHint = 'next';
   qty.value = qtyValue;
 
   const price = document.createElement('input');
   price.type = 'text';
   price.placeholder = 'Fiyat';
   price.className = 'price';
-  price.setAttribute('aria-label', `Satır ${index+1} birim fiyat`);
   price.inputMode = 'decimal';
+  price.autocomplete = 'off';
+  price.enterKeyHint = 'next';
   price.value = priceValue;
 
   const amount = document.createElement('output');
   amount.className = 'amount';
   amount.value = '0,00';
-  amount.setAttribute('aria-live', 'polite');
-  amount.setAttribute('aria-label', `Satır ${index+1} tutar`);
   amount.textContent = '0,00';
 
-  row.append(qty, price, amount);
+  row.append(num, qty, price, amount);
   return row;
 }
 
@@ -49,11 +56,17 @@ export function addRows(n, preset = []) {
   const frag = document.createDocumentFragment();
   for (let i = 0; i < n; i++) {
     const p = preset[i] || {};
-    frag.appendChild(makeRow(rowCount++, p.qty ?? '', p.price ?? ''));
+    frag.appendChild(makeRow(rowCounter++, p.qty ?? '', p.price ?? ''));
   }
   rowsEl.appendChild(frag);
-  updateAllAmounts();
+  renumberRows();
+  updateAllAmounts(); // WhatsApp linki de burada güncellenir
   persist();
+}
+
+function renumberRows(){
+  let i = 1;
+  rowsEl.querySelectorAll('.row-num').forEach(num => { num.textContent = i++; });
 }
 
 function updateRow(row) {
@@ -63,14 +76,30 @@ function updateRow(row) {
   row.querySelector('.amount').textContent = fmt.format(total);
 }
 
-function updateGrandTotal() {
-  let sum = 0;
+function computeTotals(){
+  let sumAmount = 0;
+  let sumQty = 0;
   rowsEl.querySelectorAll('.row').forEach(r => {
     const qty = parseNumber(r.querySelector('.qty').value);
     const price = parseNumber(r.querySelector('.price').value);
-    sum += qty * price;
+    sumQty += qty;
+    sumAmount += qty * price;
   });
-  grandTotalEl.textContent = fmt.format(sum);
+  return { sumQty, sumAmount };
+}
+
+function updateGrandTotal() {
+  const { sumQty, sumAmount } = computeTotals();
+  grandTotalEl.textContent = fmt.format(sumAmount);
+  updateWhatsAppLink(sumQty, sumAmount);
+}
+
+function updateWhatsAppLink(totalQty, totalAmount){
+  if (!waBtn) return;
+  const text =
+    `Toplam Ürün Adedi: ${totalQty}%0A` +
+    `Toplam Tutar: ${fmt.format(totalAmount)}%0A`;
+  waBtn.href = `https://wa.me/${WA_NUMBER}?text=${text}`;
 }
 
 function updateAllAmounts() {
@@ -88,12 +117,22 @@ function collectState() {
   });
   return rows;
 }
+function persist() { saveState(collectState()); }
 
-function persist() {
-  saveState(collectState());
+/* Footer görünürlüğü */
+if (endSentinel && footerEl) {
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.target === endSentinel){
+        if(e.isIntersecting) footerEl.classList.add('show');
+        else footerEl.classList.remove('show');
+      }
+    });
+  },{root:null, threshold:0.01});
+  io.observe(endSentinel);
 }
 
-// Event delegation for inputs
+/* Olaylar */
 rowsEl.addEventListener('input', (e) => {
   const row = e.target.closest('.row');
   if (!row) return;
@@ -103,8 +142,17 @@ rowsEl.addEventListener('input', (e) => {
     persist();
   }
 });
+rowsEl.addEventListener('change', (e) => {
+  const row = e.target.closest('.row');
+  if (!row) return;
+  if (e.target.classList.contains('qty') || e.target.classList.contains('price')){
+    updateRow(row);
+    updateGrandTotal();
+    persist();
+  }
+});
 
-// Enter key navigation
+/* Enter/Next akışı */
 rowsEl.addEventListener('keydown', (e) => {
   if (e.key !== 'Enter') return;
   const t = e.target;
@@ -120,10 +168,7 @@ rowsEl.addEventListener('keydown', (e) => {
       const target = nextRow.querySelector('.qty');
       target && target.focus();
     } else {
-      // If at last row, create 20 more and focus first qty
       addRows(20);
-      const firstNew = rowsEl.querySelector('.row:last-child'); // actually last; we'll focus last added block's qty?
-      // Focus the first newly added qty: locate previous count minus n
       const all = rowsEl.querySelectorAll('.row');
       const target = all[all.length - 20]?.querySelector('.qty');
       target && target.focus();
@@ -131,23 +176,27 @@ rowsEl.addEventListener('keydown', (e) => {
   }
 });
 
-// Buttons
-add20Top.addEventListener('click', () => addRows(20));
-add20Bottom.addEventListener('click', () => addRows(20));
+/* Alt +20 butonu */
+if (add20Bottom) {
+  add20Bottom.addEventListener('click', () => addRows(20));
+}
 
-resetBtn.addEventListener('click', () => {
-  const ok = confirm('Tüm satırlar sıfırlansın mı? Bu işlem geri alınamaz.');
-  if (!ok) return;
-  rowsEl.innerHTML = '';
-  rowCount = 0;
-  clearState();
-  addRows(INITIAL);
-});
+/* Sıfırla */
+if (resetBtn) {
+  resetBtn.addEventListener('click', () => {
+    const ok = confirm('Tüm satırlar sıfırlansın mı? Bu işlem geri alınamaz.');
+    if (!ok) return;
+    rowsEl.innerHTML = '';
+    rowCounter = 0;
+    clearState();
+    addRows(INITIAL);
+  });
+}
 
+/* Başlat */
 export function init() {
   const saved = loadState();
   if (saved && Array.isArray(saved.rows) && saved.rows.length > 0) {
-    // Recreate saved rows (in blocks of 20 for convenience)
     const chunks = Math.ceil(saved.rows.length / 20);
     for (let i = 0; i < chunks; i++) {
       const slice = saved.rows.slice(i*20, (i+1)*20);
